@@ -9,6 +9,8 @@ jobs:
   build-check:
     name: Build check
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: "file:./dev.db"
     steps:
       - uses: actions/checkout@v4
 
@@ -22,13 +24,9 @@ jobs:
 
       - name: Prisma generate
         run: npx prisma generate
-        env:
-          DATABASE_URL: "file:./dev.db"
 
       - name: Next.js build
         run: npm run build
-        env:
-          DATABASE_URL: "file:./dev.db"
 
   deploy:
     name: Deploy to server
