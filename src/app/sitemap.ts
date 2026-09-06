@@ -1,27 +1,33 @@
 import type { MetadataRoute } from "next";
 import { getAllApps } from "@/lib/apps";
 import { company } from "@/lib/company";
+import { locales, localeHref } from "@/lib/i18n/config";
 
 export const dynamic = "force-dynamic";
 
+const staticPaths = ["/", "/apps", "/about", "/contact", "/privacy", "/terms"];
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const apps = await getAllApps();
   const base = company.website;
+  const entries: MetadataRoute.Sitemap = [];
 
-  const staticRoutes: MetadataRoute.Sitemap = [
-    { url: `${base}/`, changeFrequency: "weekly", priority: 1 },
-    { url: `${base}/apps`, changeFrequency: "weekly", priority: 0.9 },
-    { url: `${base}/about`, changeFrequency: "monthly", priority: 0.5 },
-    { url: `${base}/contact`, changeFrequency: "monthly", priority: 0.5 },
-    { url: `${base}/privacy`, changeFrequency: "yearly", priority: 0.3 },
-    { url: `${base}/terms`, changeFrequency: "yearly", priority: 0.3 },
-  ];
+  for (const locale of locales) {
+    const apps = await getAllApps(locale);
 
-  const appRoutes: MetadataRoute.Sitemap = apps.flatMap((app) => [
-    { url: `${base}/apps/${app.slug}`, changeFrequency: "weekly" as const, priority: 0.8 },
-    { url: `${base}/privacy/${app.slug}`, changeFrequency: "yearly" as const, priority: 0.4 },
-    { url: `${base}/terms/${app.slug}`, changeFrequency: "yearly" as const, priority: 0.4 },
-  ]);
+    for (const path of staticPaths) {
+      entries.push({
+        url: `${base}${localeHref(locale, path)}`,
+        changeFrequency: path === "/" || path === "/apps" ? "weekly" : path === "/about" || path === "/contact" ? "monthly" : "yearly",
+        priority: path === "/" ? 1 : path === "/apps" ? 0.9 : path === "/about" || path === "/contact" ? 0.5 : 0.3,
+      });
+    }
 
-  return [...staticRoutes, ...appRoutes];
+    for (const app of apps) {
+      entries.push({ url: `${base}${localeHref(locale, `/apps/${app.slug}`)}`, changeFrequency: "weekly", priority: 0.8 });
+      entries.push({ url: `${base}${localeHref(locale, `/privacy/${app.slug}`)}`, changeFrequency: "yearly", priority: 0.4 });
+      entries.push({ url: `${base}${localeHref(locale, `/terms/${app.slug}`)}`, changeFrequency: "yearly", priority: 0.4 });
+    }
+  }
+
+  return entries;
 }

@@ -4,22 +4,30 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import Logo from "./Logo";
+import type { Locale } from "@/lib/i18n/config";
+import { localeHref } from "@/lib/i18n/config";
+import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 
-const navLinks = [
-  { href: "/", label: "الرئيسية" },
-  { href: "/apps", label: "تطبيقاتنا" },
-  { href: "/about", label: "من نحن" },
-  { href: "/contact", label: "تواصل معنا" },
-];
-
-export default function Header() {
+export default function Header({ locale, nav }: { locale: Locale; nav: Dictionary["nav"] }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+
+  const navLinks = [
+    { href: localeHref(locale, "/"), label: nav.home },
+    { href: localeHref(locale, "/apps"), label: nav.apps },
+    { href: localeHref(locale, "/about"), label: nav.about },
+    { href: localeHref(locale, "/contact"), label: nav.contact },
+  ];
+
+  // strip the /ar prefix (if any) to get the locale-neutral path for switching languages
+  const barePath = locale === "ar" ? pathname.replace(/^\/ar/, "") || "/" : pathname;
+  const otherLocale: Locale = locale === "ar" ? "en" : "ar";
+  const switchHref = localeHref(otherLocale, barePath);
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200/70 bg-white/80 backdrop-blur dark:border-slate-800/70 dark:bg-slate-950/80">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-        <Link href="/" onClick={() => setOpen(false)}>
+        <Link href={localeHref(locale, "/")} onClick={() => setOpen(false)}>
           <Logo />
         </Link>
 
@@ -40,12 +48,18 @@ export default function Header() {
               </Link>
             );
           })}
+          <Link
+            href={switchHref}
+            className="ms-2 rounded-full border border-slate-300 px-3.5 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+          >
+            {otherLocale === "ar" ? "العربية" : "English"}
+          </Link>
         </nav>
 
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          aria-label="فتح القائمة"
+          aria-label={nav.openMenu}
           aria-expanded={open}
           className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 md:hidden"
         >
@@ -76,6 +90,13 @@ export default function Header() {
                 {link.label}
               </Link>
             ))}
+            <Link
+              href={switchHref}
+              onClick={() => setOpen(false)}
+              className="rounded-lg px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+            >
+              {otherLocale === "ar" ? "العربية" : "English"}
+            </Link>
           </div>
         </nav>
       )}

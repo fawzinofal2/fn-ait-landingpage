@@ -20,11 +20,13 @@ enum AppStatus {
 model App {
   id          String      @id @default(cuid())
   slug        String      @unique
-  name        String
-  tagline     String
-  description String
-  category    AppCategory
-  status      AppStatus   @default(PUBLISHED)
+  name          String
+  taglineEn     String
+  taglineAr     String
+  descriptionEn String
+  descriptionAr String
+  category      AppCategory
+  status        AppStatus   @default(PUBLISHED)
 
   accentFrom  String      @default("#7C3AED")
   accentTo    String      @default("#2563EB")
@@ -40,7 +42,8 @@ model App {
   websiteUrl   String?
   supportEmail String  @default("support@fn-ait.com")
 
-  ageRating        String  @default("للجميع")
+  ageRatingEn      String  @default("Everyone")
+  ageRatingAr      String  @default("للجميع")
   targetsChildren  Boolean @default(false)
   containsAds      Boolean @default(false)
   hasInAppPurchases Boolean @default(false)
@@ -51,7 +54,8 @@ model App {
   permissions        Json @default("[]")
   analyticsProviders Json @default("[]")
   adNetworks         Json @default("[]")
-  features           Json @default("[]")
+  featuresEn         Json @default("[]")
+  featuresAr         Json @default("[]")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -1,10 +1,14 @@
 import Link from "next/link";
 import Logo from "./Logo";
-import { company } from "@/lib/company";
-import { getAllApps, categoryLabels } from "@/lib/apps";
+import { getCompany } from "@/lib/company";
+import { getAllApps } from "@/lib/apps";
+import type { Locale } from "@/lib/i18n/config";
+import { localeHref } from "@/lib/i18n/config";
+import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 
-export default async function Footer() {
-  const apps = await getAllApps();
+export default async function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
+  const apps = await getAllApps(locale);
+  const company = getCompany(locale);
 
   return (
     <footer className="mt-24 border-t border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-950">
@@ -18,37 +22,37 @@ export default async function Footer() {
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold text-slate-900 dark:text-white">روابط سريعة</h3>
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-white">{dict.footer.quickLinks}</h3>
             <ul className="mt-4 space-y-2.5 text-sm">
-              <li><Link href="/" className="text-slate-500 hover:text-violet-600 dark:text-slate-400 dark:hover:text-violet-400">الرئيسية</Link></li>
-              <li><Link href="/apps" className="text-slate-500 hover:text-violet-600 dark:text-slate-400 dark:hover:text-violet-400">تطبيقاتنا</Link></li>
-              <li><Link href="/about" className="text-slate-500 hover:text-violet-600 dark:text-slate-400 dark:hover:text-violet-400">من نحن</Link></li>
-              <li><Link href="/contact" className="text-slate-500 hover:text-violet-600 dark:text-slate-400 dark:hover:text-violet-400">تواصل معنا</Link></li>
+              <li><Link href={localeHref(locale, "/")} className="text-slate-500 hover:text-violet-600 dark:text-slate-400 dark:hover:text-violet-400">{dict.nav.home}</Link></li>
+              <li><Link href={localeHref(locale, "/apps")} className="text-slate-500 hover:text-violet-600 dark:text-slate-400 dark:hover:text-violet-400">{dict.nav.apps}</Link></li>
+              <li><Link href={localeHref(locale, "/about")} className="text-slate-500 hover:text-violet-600 dark:text-slate-400 dark:hover:text-violet-400">{dict.nav.about}</Link></li>
+              <li><Link href={localeHref(locale, "/contact")} className="text-slate-500 hover:text-violet-600 dark:text-slate-400 dark:hover:text-violet-400">{dict.nav.contact}</Link></li>
             </ul>
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold text-slate-900 dark:text-white">قانوني</h3>
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-white">{dict.footer.legal}</h3>
             <ul className="mt-4 space-y-2.5 text-sm">
-              <li><Link href="/privacy" className="text-slate-500 hover:text-violet-600 dark:text-slate-400 dark:hover:text-violet-400">سياسة خصوصية الموقع</Link></li>
-              <li><Link href="/terms" className="text-slate-500 hover:text-violet-600 dark:text-slate-400 dark:hover:text-violet-400">شروط استخدام الموقع</Link></li>
+              <li><Link href={localeHref(locale, "/privacy")} className="text-slate-500 hover:text-violet-600 dark:text-slate-400 dark:hover:text-violet-400">{dict.footer.sitePrivacy}</Link></li>
+              <li><Link href={localeHref(locale, "/terms")} className="text-slate-500 hover:text-violet-600 dark:text-slate-400 dark:hover:text-violet-400">{dict.footer.siteTerms}</Link></li>
             </ul>
           </div>
         </div>
 
         {apps.length > 0 && (
           <div className="mt-10 border-t border-slate-200 pt-8 dark:border-slate-800">
-            <h3 className="text-sm font-semibold text-slate-900 dark:text-white">سياسات تطبيقاتنا</h3>
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-white">{dict.footer.appPolicies}</h3>
             <ul className="mt-4 grid gap-x-8 gap-y-2.5 text-sm sm:grid-cols-2 lg:grid-cols-3">
               {apps.map((app) => (
                 <li key={app.id} className="flex flex-wrap items-center gap-x-2 text-slate-500 dark:text-slate-400">
                   <span className="font-medium text-slate-700 dark:text-slate-300">{app.name}</span>
                   <span className="text-slate-300 dark:text-slate-600">·</span>
-                  <span className="text-xs text-slate-400 dark:text-slate-500">{categoryLabels[app.category]}</span>
+                  <span className="text-xs text-slate-400 dark:text-slate-500">{dict.categories[app.category as keyof typeof dict.categories]}</span>
                   <span className="text-slate-300 dark:text-slate-600">·</span>
-                  <Link href={`/privacy/${app.slug}`} className="hover:text-violet-600 dark:hover:text-violet-400">الخصوصية</Link>
+                  <Link href={localeHref(locale, `/privacy/${app.slug}`)} className="hover:text-violet-600 dark:hover:text-violet-400">{dict.footer.privacy}</Link>
                   <span className="text-slate-300 dark:text-slate-600">/</span>
-                  <Link href={`/terms/${app.slug}`} className="hover:text-violet-600 dark:hover:text-violet-400">الاستخدام</Link>
+                  <Link href={localeHref(locale, `/terms/${app.slug}`)} className="hover:text-violet-600 dark:hover:text-violet-400">{dict.footer.terms}</Link>
                 </li>
               ))}
             </ul>
@@ -56,8 +60,8 @@ export default async function Footer() {
         )}
 
         <div className="mt-10 flex flex-col items-center gap-2 border-t border-slate-200 pt-6 text-xs text-slate-400 dark:border-slate-800 dark:text-slate-500 sm:flex-row sm:justify-between">
-          <p>© {new Date().getFullYear()} {company.name}. جميع الحقوق محفوظة.</p>
-          <p>{company.taglineEn}</p>
+          <p>© {new Date().getFullYear()} {company.name}. {dict.footer.rights}</p>
+          <p>{locale === "ar" ? "Smart Solutions with AI Technology" : "حلول ذكية بتقنية الذكاء الاصطناعي"}</p>
         </div>
       </div>
     </footer>

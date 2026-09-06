@@ -1,20 +1,21 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { getAppBySlug, categoryLabels } from "@/lib/apps";
+import { getAppBySlug } from "@/lib/apps";
+import { getDictionary } from "@/lib/i18n/get-dictionary";
+import { localeHref, type Locale } from "@/lib/i18n/config";
+import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 }): Promise<Metadata> {
-  const { slug } = await params;
-  const app = await getAppBySlug(slug);
+  const { locale: localeParam, slug } = await params;
+  const locale = localeParam as Locale;
+  const app = await getAppBySlug(slug, locale);
   if (!app) return {};
-  return {
-    title: app.name,
-    description: app.tagline,
-  };
+  return { title: app.name, description: app.tagline };
 }
 
 function InfoRow({ label, value }: { label: string; value: string }) {
@@ -44,10 +45,12 @@ function DataSafetyRow({ label, value }: { label: string; value: boolean }) {
 export default async function AppDetailPage({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 }) {
-  const { slug } = await params;
-  const app = await getAppBySlug(slug);
+  const { locale: localeParam, slug } = await params;
+  const locale = localeParam as Locale;
+  const dict: Dictionary = getDictionary(locale);
+  const app = await getAppBySlug(slug, locale);
   if (!app) notFound();
 
   return (
@@ -61,7 +64,7 @@ export default async function AppDetailPage({
         </div>
         <div>
           <span className="rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-violet-700 dark:bg-violet-500/10 dark:text-violet-300">
-            {categoryLabels[app.category]}
+            {dict.categories[app.category as keyof typeof dict.categories]}
           </span>
           <h1 className="mt-3 text-3xl font-extrabold text-slate-900 dark:text-white sm:text-4xl">{app.name}</h1>
           <p className="mt-2 max-w-xl text-slate-500 dark:text-slate-400">{app.tagline}</p>
@@ -76,27 +79,27 @@ export default async function AppDetailPage({
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-6 py-3 text-sm font-bold text-white transition-transform hover:-translate-y-0.5 dark:bg-white dark:text-slate-900"
           >
-            ▶ حمّل من Google Play
+            {dict.appDetail.getOnPlay}
           </a>
         )}
         <Link
-          href={`/privacy/${app.slug}`}
+          href={localeHref(locale, `/privacy/${app.slug}`)}
           className="inline-flex items-center gap-2 rounded-full border border-slate-300 px-6 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
         >
-          سياسة الخصوصية
+          {dict.appDetail.privacyPolicy}
         </Link>
         <Link
-          href={`/terms/${app.slug}`}
+          href={localeHref(locale, `/terms/${app.slug}`)}
           className="inline-flex items-center gap-2 rounded-full border border-slate-300 px-6 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
         >
-          شروط الاستخدام
+          {dict.appDetail.termsOfUse}
         </Link>
       </div>
 
       <div className="mt-14 grid gap-10 lg:grid-cols-3">
         <div className="space-y-8 lg:col-span-2">
           <section>
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white">عن التطبيق</h2>
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white">{dict.appDetail.about}</h2>
             <div className="mt-3 space-y-4">
               {app.description.split("\n\n").map((p, i) => (
                 <p key={i} className="leading-relaxed text-slate-600 dark:text-slate-300">
@@ -108,7 +111,7 @@ export default async function AppDetailPage({
 
           {app.featuresList.length > 0 && (
             <section>
-              <h2 className="text-xl font-bold text-slate-900 dark:text-white">أبرز الميزات</h2>
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white">{dict.appDetail.features}</h2>
               <ul className="mt-3 space-y-2.5">
                 {app.featuresList.map((f, i) => (
                   <li key={i} className="flex gap-2.5 text-slate-600 dark:text-slate-300">
@@ -123,32 +126,35 @@ export default async function AppDetailPage({
 
         <aside className="space-y-6">
           <div className="rounded-2xl border border-slate-200 p-5 dark:border-slate-800">
-            <h3 className="mb-2 font-bold text-slate-900 dark:text-white">معلومات التطبيق</h3>
-            <InfoRow label="التصنيف العمري" value={app.ageRating} />
-            {app.version && <InfoRow label="الإصدار" value={app.version} />}
-            {app.sizeMb && <InfoRow label="الحجم" value={`${app.sizeMb} MB`} />}
-            {app.minAndroidVersion && <InfoRow label="أقل إصدار أندرويد" value={app.minAndroidVersion} />}
+            <h3 className="mb-2 font-bold text-slate-900 dark:text-white">{dict.appDetail.appInfo}</h3>
+            <InfoRow label={dict.appDetail.ageRating} value={app.ageRating} />
+            {app.version && <InfoRow label={dict.appDetail.version} value={app.version} />}
+            {app.sizeMb && <InfoRow label={dict.appDetail.size} value={`${app.sizeMb} MB`} />}
+            {app.minAndroidVersion && <InfoRow label={dict.appDetail.minAndroid} value={app.minAndroidVersion} />}
             {app.releaseDate && (
               <InfoRow
-                label="تاريخ الإصدار"
-                value={new Date(app.releaseDate).toLocaleDateString("ar-EG", { year: "numeric", month: "long" })}
+                label={dict.appDetail.releaseDate}
+                value={new Date(app.releaseDate).toLocaleDateString(locale === "ar" ? "ar-EG" : "en-US", {
+                  year: "numeric",
+                  month: "long",
+                })}
               />
             )}
           </div>
 
           <div className="rounded-2xl border border-slate-200 p-5 dark:border-slate-800">
-            <h3 className="mb-3 font-bold text-slate-900 dark:text-white">أمان البيانات</h3>
+            <h3 className="mb-3 font-bold text-slate-900 dark:text-white">{dict.appDetail.dataSafety}</h3>
             <ul className="space-y-2.5">
-              <DataSafetyRow label="يحتوي على إعلانات" value={app.containsAds} />
-              <DataSafetyRow label="مشتريات داخل التطبيق" value={app.hasInAppPurchases} />
-              <DataSafetyRow label="يجمع بيانات شخصية" value={app.collectsPersonalData} />
-              <DataSafetyRow label="يجمع بيانات الموقع" value={app.collectsLocation} />
+              <DataSafetyRow label={dict.appDetail.containsAds} value={app.containsAds} />
+              <DataSafetyRow label={dict.appDetail.hasIAP} value={app.hasInAppPurchases} />
+              <DataSafetyRow label={dict.appDetail.collectsPersonal} value={app.collectsPersonalData} />
+              <DataSafetyRow label={dict.appDetail.collectsLocation} value={app.collectsLocation} />
             </ul>
             <Link
-              href={`/privacy/${app.slug}`}
+              href={localeHref(locale, `/privacy/${app.slug}`)}
               className="mt-4 inline-block text-sm font-semibold text-violet-600 hover:text-violet-700 dark:text-violet-400"
             >
-              تفاصيل كاملة في سياسة الخصوصية ←
+              {dict.appDetail.fullPrivacyDetails}
             </Link>
           </div>
         </aside>
