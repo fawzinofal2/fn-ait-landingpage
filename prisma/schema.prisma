@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum AppCategory {
+  KIDS_GAME
+  GAME
+  TOOL
+}
+
+enum AppStatus {
+  PUBLISHED
+  COMING_SOON
+}
+
+model App {
+  id          String      @id @default(cuid())
+  slug        String      @unique
+  name        String
+  tagline     String
+  description String
+  category    AppCategory
+  status      AppStatus   @default(PUBLISHED)
+
+  accentFrom  String      @default("#7C3AED")
+  accentTo    String      @default("#2563EB")
+  iconEmoji   String      @default("🧩")
+
+  version           String?
+  sizeMb            Float?
+  releaseDate       DateTime?
+  minAndroidVersion String?
+
+  playStoreUrl String?
+  appStoreUrl  String?
+  websiteUrl   String?
+  supportEmail String  @default("support@fn-ait.com")
+
+  ageRating        String  @default("للجميع")
+  targetsChildren  Boolean @default(false)
+  containsAds      Boolean @default(false)
+  hasInAppPurchases Boolean @default(false)
+
+  collectsPersonalData Boolean @default(false)
+  collectsLocation     Boolean @default(false)
+
+  permissions        Json @default("[]")
+  analyticsProviders Json @default("[]")
+  adNetworks         Json @default("[]")
+  features           Json @default("[]")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

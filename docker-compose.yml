@@ -1,0 +1,26 @@
+services:
+  migrate:
+    build:
+      context: .
+      target: migrator
+    environment:
+      DATABASE_URL: file:/app/data/prod.db
+    volumes:
+      - ./data:/app/data
+    restart: "no"
+
+  web:
+    build:
+      context: .
+      target: runner
+    environment:
+      DATABASE_URL: file:/app/data/prod.db
+      NODE_ENV: production
+    volumes:
+      - ./data:/app/data
+    ports:
+      - "1502:3000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
