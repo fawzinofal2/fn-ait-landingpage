@@ -28,6 +28,13 @@ export const metadata: Metadata = {
     siteName: company.name,
     locale: "ar_AR",
     type: "website",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: company.name }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: company.name,
+    description: company.description,
+    images: ["/og-image.png"],
   },
 };
 
