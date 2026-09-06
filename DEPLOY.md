@@ -1,6 +1,6 @@
-# دليل النشر — fn-ait على السيرفر (46.224.56.254:1502)
+# دليل النشر — fn-ait على السيرفر (46.224.56.254:14255)
 
-هذا الموقع يُنشر كحاوية Docker على نفس السيرفر والـ IP المستخدم لـ `ai.fn-ait.com`، لكن على المنفذ **1502** (بدل 1500)، عبر GitHub Actions تلقائيًا مع كل push على فرع `main`.
+هذا الموقع يُنشر كحاوية Docker على نفس السيرفر والـ IP المستخدم لـ `ai.fn-ait.com`، لكن على المنفذ **14255**، عبر GitHub Actions تلقائيًا مع كل push على فرع `main`، وسيُربط بالدومين **play.fn-ait.com**.
 
 ## 1) تجهيز السيرفر (مرة واحدة فقط)
 
@@ -21,39 +21,28 @@ cd /opt/fn-ait-web
 docker compose up -d --build
 ```
 
-بعد نجاح هذا الأمر يكون الموقع يعمل محليًا على السيرفر على `http://127.0.0.1:1502`.
+بعد نجاح هذا الأمر يكون الموقع يعمل محليًا على السيرفر على `http://127.0.0.1:14255`.
 
-**افتح المنفذ 1502** في جدار الحماية إذا لزم:
+إذا كان لديك جدار حماية (ufw) مفعّل على السيرفر، **لا داعي لفتح المنفذ 14255 للخارج** ما دام Caddy هو من سيستقبل الطلبات من الإنترنت ويوجّهها داخليًا (`reverse_proxy`) — يكفي أن يكون المنفذ متاحًا على `127.0.0.1` فقط، وهذا افتراضي مع Docker.
 
-```bash
-sudo ufw allow 1502/tcp
-```
+## 2) ربط الدومين play.fn-ait.com عبر Caddy
 
-## 2) ربط دومين (اختياري، لكن موصى به — تمامًا متل ai.fn-ait.com على 1500)
+بما إنو عندك مشروع منفصل بيتحكم بإعدادات Caddy لكل السبدومينات (متل `ai.fn-ait.com`)، ضيف هالبلوك لملف الـ `Caddyfile` تبعو:
 
-إذا كان السيرفر يستخدم Nginx كـ reverse proxy (كما هو مفترض من إعداد `ai.fn-ait.com`)، أضف ملف إعداد مشابه:
-
-```nginx
-server {
-    listen 80;
-    server_name fn-ait.com www.fn-ait.com;
-
-    location / {
-        proxy_pass http://127.0.0.1:1502;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
+```caddyfile
+play.fn-ait.com {
+    reverse_proxy 127.0.0.1:14255
 }
 ```
 
-ثم فعّل شهادة TLS (مثلًا عبر `certbot --nginx -d fn-ait.com -d www.fn-ait.com`).
+Caddy رح يتكفّل تلقائيًا بشهادة TLS (Let's Encrypt) لدومين `play.fn-ait.com` بمجرد ما تعيد تحميل/تشغيل Caddy:
 
-> ملاحظة: هذا مثال عام لأني لا أملك إمكانية الاطلاع فعليًا على إعداد Nginx الحالي لـ `ai.fn-ait.com` على سيرفرك — عدّل أسماء السيرفر والمسارات حسب إعدادك الفعلي.
+```bash
+caddy reload --config /path/to/Caddyfile
+# أو حسب طريقة تشغيله عندك (systemd service, docker container...الخ)
+```
+
+> ملاحظة: تأكد إنو DNS تبع `play.fn-ait.com` مشير (A record) لنفس IP السيرفر `46.224.56.254` قبل ما Caddy يقدر يصدر الشهادة.
 
 ## 3) إعداد GitHub Actions للنشر التلقائي
 
@@ -70,7 +59,9 @@ server {
 بعد إضافة الأسرار، أي `push` على `main` سينفّذ `.github/workflows/deploy.yml` تلقائيًا:
 
 1. **build-check**: يتأكد أن المشروع يُبنى بنجاح (`npm run build`) قبل أي نشر.
-2. **deploy**: يتصل بالسيرفر عبر SSH وينفّذ `git pull` ثم `docker compose up -d --build` في `DEPLOY_PATH`، ثم يتحقق أن `http://localhost:1502` يستجيب.
+2. **deploy**: يتصل بالسيرفر عبر SSH وينفّذ `git pull` ثم `docker compose up -d --build` في `DEPLOY_PATH`، ثم يتحقق أن `http://localhost:14255` يستجيب.
+
+هالخطوة ما بتلمس ملف Caddy تبع المشروع المتحكم — هيدا لازم تضيفه أنت مرة وحدة يدويًا متل ما هو موضّح فوق (لأنو مو جزء من هالمستودع).
 
 ## 4) قاعدة البيانات وبياناتها
 

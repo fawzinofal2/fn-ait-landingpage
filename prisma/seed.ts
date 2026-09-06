@@ -21,7 +21,7 @@ async function main() {
       releaseDate: new Date("2026-01-15"),
       playStoreUrl: "https://play.google.com/store/apps/details?id=com.fnait.puzzloop",
       appStoreUrl: null,
-      websiteUrl: "https://fn-ait.com/apps/puzzloop",
+      websiteUrl: "https://play.fn-ait.com/apps/puzzloop",
       supportEmail: "support@fn-ait.com",
       ageRating: "للجميع (3+)",
       targetsChildren: false,

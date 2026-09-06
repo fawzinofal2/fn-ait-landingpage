@@ -19,7 +19,7 @@ services:
     volumes:
       - ./data:/app/data
     ports:
-      - "1502:3000"
+      - "14255:3000"
     depends_on:
       migrate:
         condition: service_completed_successfully

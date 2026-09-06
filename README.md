@@ -20,4 +20,4 @@ npm run dev          # http://localhost:3000
 
 ## النشر (Docker + GitHub Actions)
 
-راجع [DEPLOY.md](./DEPLOY.md) لتفاصيل نشر الموقع على السيرفر عبر Docker على المنفذ 1502.
+راجع [DEPLOY.md](./DEPLOY.md) لتفاصيل نشر الموقع على السيرفر عبر Docker على المنفذ 14255، خلف Caddy على دومين `play.fn-ait.com`.
